@@ -3,7 +3,7 @@ Variabel=Variabel+2
 print(Variabel)
 
 Kunde="Nordlys AS"
-Brukere=0
+Brukere=20
 Lisens=150
 Oppsett=900
 Månedsbud = 2707.5
