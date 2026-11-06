@@ -11,6 +11,7 @@ Testresultater:
 Kjør 12 og 25 brukere, med pris 150 kr og oppsett 900 kr. Noter rabatt, månedskostnad etter rabatt og førsteårskostnad. 
       12 brukere: Rabatt: 5%, Månedskost: 1710, førsteårskost: 21420
       25 brukere: Rabatt: 10%, Månedskost: 3375, førsteårskost: 41400
+Har gjennomført grensetester med 9,10, 19 og 20 brukere. Rabattsatsene justeres til forventning. 
       
 Planlagte sikkerhetstiltak: 
 Tilgangskontroll: Alle som bruker dette programmet skal bare ha tilgang til sine egne kundecase, når de slutter skal det også med i offboardingrutine at de mister tilgang umiddelbart. 
