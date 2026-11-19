@@ -114,6 +114,124 @@ Månedskostnaden etter rabatt skal være 2 700 kroner. Endre bare `Månedsbud` m
 
 Rabatten, månedskostnaden og førsteårskostnaden skal være uendret mellom disse tre testene. Bare budsjettstatusen skal endres.
 
+
+## Planlagt tilgangsstyring i Cloud Advisor
+
+### Formål
+
+Cloud Advisor skal ha en tilgangsstyring som sikrer at brukere kun får tilgang til kundedata og funksjoner de har tillatelse til å benytte.
+
+Løsningen skal bygge på rollebasert tilgangskontroll (RBAC) kombinert med kundetilhørighet. Dette innebærer at en bruker både må ha riktig tilgang til kunden og nødvendige rettigheter for handlingen.
+
+Målet er å beskytte kundedata mot uautorisert innsyn og endring.
+
+### 1. Roller og rettigheter
+
+Det planlegges to hovedroller:
+
+- **Leser:** Kan lese kundecaser, men ikke endre informasjon.
+- **Redaktør:** Kan både lese og redigere kundecaser.
+
+Rettighetene skal være knyttet til den enkelte kunden. En bruker med tilgang til én kunde skal ikke automatisk få tilgang til andre kunder.
+
+### 2. Eksempel på tilgangsmatrise
+
+Følgende tilgangsregler er definert for to eksempelbedrifter.
+
+**Nordkurs**
+
+| Bruker | Lese | Redigere |
+|---|---|---|
+| Ingrid | Tillatt | Ikke tillatt |
+| Bo | Tillatt | Tillatt |
+| Eva | Ikke tillatt | Ikke tillatt |
+
+**Fjordhandel**
+
+| Bruker | Lese | Redigere |
+|---|---|---|
+| Eva | Tillatt | Ikke tillatt |
+| Ingrid | Ikke tillatt | Ikke tillatt |
+| Bo | Ikke tillatt | Ikke tillatt |
+
+### 3. Planlagt tilgangskontroll
+
+Når en bruker forsøker å lese eller endre et kundecase, skal systemet gjennomføre følgende kontroller:
+
+1. Bekrefte at brukeren er autentisert.
+2. Kontrollere at brukeren har tilgang til den aktuelle kunden.
+3. Kontrollere at brukerens rolle tillater handlingen.
+4. Godkjenne handlingen dersom begge tilgangskravene er oppfylt.
+5. Avvise handlingen dersom minst ett krav ikke er oppfylt.
+
+Systemet skal følge prinsippet om minste privilegium. Brukere skal kun få de rettighetene de trenger for å utføre sine oppgaver.
+
+### 4. Eksempler på tilgangskontroll
+
+**Scenario A: Ingrid forsøker å redigere Nordkurs**
+
+- Ingrid er innlogget.
+- Ingrid har lesetilgang til Nordkurs.
+- Ingrid har ikke redigeringsrettigheter.
+- Systemet avviser handlingen.
+
+**Resultat: AVVIST**
+
+**Scenario B: Ingrid forsøker å lese Nordkurs**
+
+- Ingrid er innlogget.
+- Ingrid har tilgang til Nordkurs.
+- Rollen tillater lesing.
+- Systemet gir tilgang til kundecaset.
+
+**Resultat: TILLATT**
+
+**Scenario C: Ingrid forsøker å redigere Fjordhandel**
+
+- Ingrid er innlogget.
+- Ingrid har ikke tilgang til Fjordhandel.
+- Systemet avviser handlingen.
+
+**Resultat: AVVIST**
+
+### 5. Logging og sporbarhet
+
+Cloud Advisor skal etter planen registrere tilgangsforsøk slik at hendelser kan undersøkes i etterkant.
+
+Loggen skal inneholde:
+
+- Tidspunkt for handlingen
+- Bruker
+- Handling (lese eller redigere)
+- Aktuell kunde
+- Resultat (tillatt eller avvist)
+- Begrunnelse ved avvisning
+
+Eksempel på planlagt loggformat:
+
+```text
+21:01 | Ingrid | Redigere | Fjordhandel | AVVIST | Mangler tilgang
+21:01 | Ingrid | Lese | Nordkurs | TILLATT | Lesetilgang bekreftet
+```
+
+### 6. Videre utvikling
+
+Følgende funksjonalitet planlegges implementert i Cloud Advisor:
+
+- Brukerautentisering og sikker innlogging.
+- Rollebasert tilgangskontroll for lesere og redaktører.
+- Kontroll av kundetilhørighet for hver forespørsel.
+- Logging av godkjente og avviste handlinger.
+- Tester som bekrefter at brukere ikke får tilgang til andre kunders data.
+
+### Status
+
+**Planleggingsfase – ikke implementert.**
+
+Tilgangsmatrisen og flytskjemaene er utarbeidet som en del av læringsarbeidet innen identitets- og tilgangsstyring (IAM) og cybersikkerhet.
+
+Neste steg er å implementere og teste tilgangskontrollen i Python før funksjonaliteten eventuelt kobles til Cloud Advisors øvrige tjenester.
+
 ## Videre arbeid
 
 - Kontrollere ugyldige inndata, som negative verdier.
