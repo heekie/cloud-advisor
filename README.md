@@ -1,26 +1,31 @@
 # Cloud Advisor
 
-Et læringsprosjekt i Python som beregner lisenskostnader, mengderabatt og førsteårskostnad, og kontrollerer om månedskostnaden er innenfor kundens budsjett.
+Cloud Advisor er et læringsprosjekt i Python som kombinerer programmering, kommersielle beregninger og grunnleggende cybersikkerhet.
 
-Prosjektet bruker oppdiktede kundedata. Målet er å knytte programmering til praktiske spørsmål fra kunde- og salgsarbeid.
+Prosjektet benytter oppdiktede kundedata. Målet er å utvikle en løsning som kan støtte kunde- og salgsarbeid, samtidig som prosjektet gir praktisk erfaring med Python, funksjoner, testing og etter hvert identitets- og tilgangsstyring (IAM).
 
-## Hva programmet gjør
+**Prosjektstatus:** Fungerende beregningsprototype. Tilgangsstyring er planlagt, men ikke implementert.
 
-Programmet beregner:
+## 1. Behov og funksjonalitet
+
+Bedriftskunder har behov for å forstå hva en lisenstjeneste vil koste, hvordan antall brukere påvirker prisen, og om løsningen passer innenfor et definert budsjett.
+
+Cloud Advisor beregner:
 
 - Månedskostnad før rabatt.
-- Rabattsats og rabattbeløp.
+- Rabattsats basert på antall brukere.
+- Rabattbeløp i kroner.
 - Månedskostnad etter rabatt.
-- Førsteårskostnad, inkludert engangsoppsett.
-- Om månedskostnaden etter rabatt er innenfor budsjettet.
+- Førsteårskostnad inkludert engangsoppsett.
+- Om månedskostnaden etter rabatt er innenfor kundens månedsbudsjett.
 
 ### Rabattregler
 
 | Antall brukere | Rabatt |
 |---|---:|
-| Til og med 9 | 0 % |
+| 1–9 | 0 % |
 | 10–19 | 5 % |
-| Fra og med 20 | 10 % |
+| 20 eller flere | 10 % |
 
 Rabatten gjelder hele månedskostnaden. Engangsoppsettet får ingen rabatt.
 
@@ -32,46 +37,85 @@ Førsteårskostnaden beregnes slik:
 
 En månedskostnad som er nøyaktig lik budsjettet, regnes som innenfor budsjettet.
 
-## Slik kjører du programmet
+### Implementerte Python-funksjoner
 
-Du trenger Python 3. Programmet bruker ingen eksterne pakker.
+Prosjektet benytter tre funksjoner:
 
-1. Last ned `cloud_advisor_rabatt.py`.
-2. Åpne filen i en tekst- eller kodeeditor.
-3. Endre eksempelverdiene øverst i filen:
+| Funksjon | Formål |
+|---|---|
+| `Manedskost()` | Beregner månedskostnad før rabatt |
+| `forstear_ur()` | Beregner førsteårskostnad uten rabatt |
+| `forstear_r()` | Beregner førsteårskostnad med rabatt |
 
-```python
-Kunde = "Nordlys AS"
-Brukere = 20
-Lisens = 150
-Oppsett = 900
-Månedsbud = 2700
-```
+Funksjonene tar imot nødvendige verdier som parametere og returnerer beregnede resultater. Funksjonen for førsteårskostnad uten rabatt er implementert, men resultatet skrives foreløpig ikke ut.
 
-`Lisens` er månedspris per bruker. `Oppsett` er engangskostnaden, og `Månedsbud` er kundens månedlige budsjett. Alle beløp oppgis i kroner.
+Rabattberegningen og budsjettkontrollen utføres fortsatt direkte i hovedprogrammet.
 
+## 2. Slik kjører du programmet
+
+Programmet krever Python 3 og bruker ingen eksterne pakker.
+
+1. Åpne eller last ned Python-filen fra prosjektet.
+2. Åpne filen i en kodeeditor.
+3. Endre kundeopplysningene øverst i programmet.
 4. Lagre filen.
-5. Åpne en terminal i mappen der filen ligger, og kjør:
+5. Kjør programmet i terminalen.
+
+Dersom filen heter `cloud_advisor_rabatt.py`, brukes:
 
 ```bash
 python cloud_advisor_rabatt.py
 ```
 
-På Windows kan du alternativt bruke:
+På Windows kan følgende også brukes:
 
 ```bash
 py cloud_advisor_rabatt.py
 ```
 
-Med eksempelverdiene over skal programmet beregne 10 % rabatt, 2 700 kroner i månedskostnad etter rabatt og 33 300 kroner i førsteårskostnad. Kunden skal være innenfor budsjettet.
+### Eksempeldata
 
-## Reproduserbare tester
+Den nyeste kodeversjonen bruker:
 
-Dette er manuelle tester. Endre inndata, lagre filen og kjør programmet på nytt for hver rad. Sammenlign utskriften med forventet resultat, og registrer faktisk resultat.
+```python
+Kunde = "Nordlys AS"
+Brukere = 25
+Lisens = 150
+Oppsett = 900
+Månedsbud = 2707.5
+```
 
-### 1. Rabattgrenser
+Alle beløp oppgis i norske kroner.
 
-Bruk disse faste verdiene:
+### Forventet beregning
+
+| Beregning | Resultat |
+|---|---:|
+| Antall brukere | 25 |
+| Lisenspris per bruker | 150 kr |
+| Månedskostnad før rabatt | 3 750 kr |
+| Rabattsats | 10 % |
+| Rabattbeløp | 375 kr |
+| Månedskostnad etter rabatt | 3 375 kr |
+| Engangsoppsett | 900 kr |
+| Førsteårskostnad uten rabatt | 45 900 kr |
+| Førsteårskostnad med rabatt | 41 400 kr |
+| Månedsbudsjett | 2 707,50 kr |
+| Budsjettavvik | 667,50 kr over |
+
+**Forventet budsjettstatus: Over budsjettet.**
+
+Dette viser hvordan Cloud Advisor kan gi en enkel økonomisk vurdering av et lisensbasert tilbud.
+
+## 3. Testing og testresultater
+
+Prosjektet har definerte, reproduserbare manuelle tester for rabattreglene og budsjettkontrollen.
+
+Testverdiene nedenfor er beregnet fra reglene i programmet. Faktiske kjøreresultater må registreres etter gjennomføring. Testene er ikke dokumentert som bestått.
+
+### Test A: Rabattgrenser
+
+Faste testverdier:
 
 ```python
 Kunde = "Testkunde AS"
@@ -80,22 +124,22 @@ Oppsett = 900
 Månedsbud = 3000
 ```
 
-Endre bare `Brukere` mellom kjøringene.
+Endre bare `Brukere` mellom hver kjøring.
 
-| Test | Brukere | Forventet rabatt | Forventet månedskostnad etter rabatt | Forventet førsteårskostnad | Faktisk resultat / bestått |
+| Test | Brukere | Rabatt | Måned etter rabatt | Første år | Faktisk resultat |
 |---|---:|---:|---:|---:|---|
-| R1 | 9 | 0 % | 1 350 kr | 17 100 kr | |
-| R2 | 10 | 5 % | 1 425 kr | 18 000 kr | |
-| R3 | 19 | 5 % | 2 707,50 kr | 33 390 kr | |
-| R4 | 20 | 10 % | 2 700 kr | 33 300 kr | |
+| R1 | 9 | 0 % | 1 350 kr | 17 100 kr | Ikke registrert |
+| R2 | 10 | 5 % | 1 425 kr | 18 000 kr | Ikke registrert |
+| R3 | 19 | 5 % | 2 707,50 kr | 33 390 kr | Ikke registrert |
+| R4 | 20 | 10 % | 2 700 kr | 33 300 kr | Ikke registrert |
 
-Alle fire tilfellene skal være innenfor budsjettet på 3 000 kroner.
+Alle fire testtilfellene skal være innenfor budsjettet på 3 000 kroner.
 
-Månedskostnaden blir litt lavere ved 20 enn ved 19 brukere. Det følger av at rabatten øker til 10 % på hele månedskostnaden.
+Overgangen fra 19 til 20 brukere er spesielt interessant. Månedskostnaden blir lavere ved 20 brukere fordi rabatten øker fra 5 % til 10 % og gjelder hele beløpet.
 
-### 2. Budsjettgrenser
+### Test B: Budsjettgrenser
 
-Bruk disse faste verdiene:
+Faste testverdier:
 
 ```python
 Kunde = "Testkunde AS"
@@ -104,39 +148,42 @@ Lisens = 150
 Oppsett = 900
 ```
 
-Månedskostnaden etter rabatt skal være 2 700 kroner. Endre bare `Månedsbud` mellom kjøringene.
+Månedskostnaden etter rabatt skal være 2 700 kroner.
 
-| Test | Månedsbudsjett | Situasjon | Forventet budsjettstatus | Faktisk resultat / bestått |
-|---|---:|---|---|---|
-| B1 | 2 701 kr | Kostnaden er under budsjettet | Innenfor budsjettet | |
-| B2 | 2 700 kr | Kostnaden er lik budsjettet | Innenfor budsjettet | |
-| B3 | 2 699 kr | Kostnaden er over budsjettet | Over budsjettet | |
+Endre bare `Månedsbud` mellom kjøringene.
 
-Rabatten, månedskostnaden og førsteårskostnaden skal være uendret mellom disse tre testene. Bare budsjettstatusen skal endres.
+| Test | Månedsbudsjett | Forventet status | Faktisk resultat |
+|---|---:|---|---|
+| B1 | 2 701 kr | Innenfor | Ikke registrert |
+| B2 | 2 700 kr | Innenfor | Ikke registrert |
+| B3 | 2 699 kr | Over budsjett | Ikke registrert |
 
+Rabatt, månedskostnad og førsteårskostnad skal være uendret mellom testene. Bare budsjettstatus skal endres.
 
-## Planlagt tilgangsstyring i Cloud Advisor
+### Teststatus
 
-### Formål
+**Implementert:** Beregningsfunksjoner, rabattregler og budsjettkontroll.
 
-Cloud Advisor skal ha en tilgangsstyring som sikrer at brukere kun får tilgang til kundedata og funksjoner de har tillatelse til å benytte.
+**Dokumentert:** Forventede resultater for syv manuelle testtilfeller.
 
-Løsningen skal bygge på rollebasert tilgangskontroll (RBAC) kombinert med kundetilhørighet. Dette innebærer at en bruker både må ha riktig tilgang til kunden og nødvendige rettigheter for handlingen.
+**Gjenstår:** Registrere faktiske testresultater, kontrollere ugyldige inndata og etablere automatiserte tester.
 
-Målet er å beskytte kundedata mot uautorisert innsyn og endring.
+## 4. Planlagt tilgangsstyring
 
-### 1. Roller og rettigheter
+Et naturlig neste steg for Cloud Advisor er å kunne håndtere flere kunder og brukere uten at informasjon deles med uvedkommende.
 
-Det planlegges to hovedroller:
+Tilgangsstyringen skal kombinere rollebasert tilgangskontroll (RBAC) med kontroll av kundetilhørighet.
 
-- **Leser:** Kan lese kundecaser, men ikke endre informasjon.
-- **Redaktør:** Kan både lese og redigere kundecaser.
+### Roller og rettigheter
 
-Rettighetene skal være knyttet til den enkelte kunden. En bruker med tilgang til én kunde skal ikke automatisk få tilgang til andre kunder.
+To roller er planlagt:
 
-### 2. Eksempel på tilgangsmatrise
+- **Leser:** Kan lese kundecaser.
+- **Redaktør:** Kan lese og redigere kundecaser.
 
-Følgende tilgangsregler er definert for to eksempelbedrifter.
+Rettighetene skal være knyttet til den enkelte kunden. Tilgang til én kunde skal ikke automatisk gi tilgang til andre kunder.
+
+### Eksempel på tilgangsmatrise
 
 **Nordkurs**
 
@@ -154,58 +201,30 @@ Følgende tilgangsregler er definert for to eksempelbedrifter.
 | Ingrid | Ikke tillatt | Ikke tillatt |
 | Bo | Ikke tillatt | Ikke tillatt |
 
-### 3. Planlagt tilgangskontroll
+### Planlagt kontrollflyt
 
-Når en bruker forsøker å lese eller endre et kundecase, skal systemet gjennomføre følgende kontroller:
+Når en bruker forsøker å lese eller endre et kundecase, skal systemet:
 
-1. Bekrefte at brukeren er autentisert.
-2. Kontrollere at brukeren har tilgang til den aktuelle kunden.
-3. Kontrollere at brukerens rolle tillater handlingen.
+1. Bekrefte brukerens innloggede identitet.
+2. Kontrollere at brukeren har tilgang til kunden.
+3. Kontrollere at brukerrollen tillater handlingen.
 4. Godkjenne handlingen dersom begge tilgangskravene er oppfylt.
-5. Avvise handlingen dersom minst ett krav ikke er oppfylt.
+5. Avvise handlingen dersom ett eller begge kravene ikke er oppfylt.
 
-Systemet skal følge prinsippet om minste privilegium. Brukere skal kun få de rettighetene de trenger for å utføre sine oppgaver.
+Dette bygger på prinsippet om minste privilegium, der brukere kun skal ha tilgang til informasjon og funksjoner de trenger.
 
-### 4. Eksempler på tilgangskontroll
+### Eksempel på beslutninger
 
-**Scenario A: Ingrid forsøker å redigere Nordkurs**
+| Scenario | Forventet resultat | Begrunnelse |
+|---|---|---|
+| Ingrid leser Nordkurs | Tillatt | Har lesetilgang |
+| Ingrid redigerer Nordkurs | Avvist | Mangler redigeringsrettigheter |
+| Ingrid redigerer Fjordhandel | Avvist | Mangler kundetilgang |
+| Bo redigerer Nordkurs | Tillatt | Har redigeringsrettigheter |
 
-- Ingrid er innlogget.
-- Ingrid har lesetilgang til Nordkurs.
-- Ingrid har ikke redigeringsrettigheter.
-- Systemet avviser handlingen.
+### Planlagt logging
 
-**Resultat: AVVIST**
-
-**Scenario B: Ingrid forsøker å lese Nordkurs**
-
-- Ingrid er innlogget.
-- Ingrid har tilgang til Nordkurs.
-- Rollen tillater lesing.
-- Systemet gir tilgang til kundecaset.
-
-**Resultat: TILLATT**
-
-**Scenario C: Ingrid forsøker å redigere Fjordhandel**
-
-- Ingrid er innlogget.
-- Ingrid har ikke tilgang til Fjordhandel.
-- Systemet avviser handlingen.
-
-**Resultat: AVVIST**
-
-### 5. Logging og sporbarhet
-
-Cloud Advisor skal etter planen registrere tilgangsforsøk slik at hendelser kan undersøkes i etterkant.
-
-Loggen skal inneholde:
-
-- Tidspunkt for handlingen
-- Bruker
-- Handling (lese eller redigere)
-- Aktuell kunde
-- Resultat (tillatt eller avvist)
-- Begrunnelse ved avvisning
+Systemet skal kunne registrere tidspunkt, bruker, kunde, handling og resultat for tilgangsforsøk.
 
 Eksempel på planlagt loggformat:
 
@@ -214,27 +233,57 @@ Eksempel på planlagt loggformat:
 21:01 | Ingrid | Lese | Nordkurs | TILLATT | Lesetilgang bekreftet
 ```
 
-### 6. Videre utvikling
+Loggene skal gjøre det mulig å undersøke tilgangsforsøk og etterprøve sikkerhetsbeslutninger.
 
-Følgende funksjonalitet planlegges implementert i Cloud Advisor:
+**Status: Tilgangsstyringen er dokumentert gjennom tilgangsmatriser og flytskjemaer, men ikke implementert i Python.**
 
-- Brukerautentisering og sikker innlogging.
-- Rollebasert tilgangskontroll for lesere og redaktører.
-- Kontroll av kundetilhørighet for hver forespørsel.
-- Logging av godkjente og avviste handlinger.
-- Tester som bekrefter at brukere ikke får tilgang til andre kunders data.
+## 5. Begrensninger og videre utvikling
 
-### Status
+Cloud Advisor er foreløpig en læringsprototype, ikke en ferdig tjeneste.
 
-**Planleggingsfase – ikke implementert.**
+### Kjente begrensninger
 
-Tilgangsmatrisen og flytskjemaene er utarbeidet som en del av læringsarbeidet innen identitets- og tilgangsstyring (IAM) og cybersikkerhet.
+- Kundedata legges inn manuelt i Python-koden.
+- Programmet mangler brukergrensesnitt og database.
+- Negative verdier og ugyldige inndata blir ikke kontrollert.
+- Rabattreglene er forhåndsdefinerte.
+- Beregningene er ikke samlet i én felles funksjon.
+- Testene er manuelle og mangler dokumenterte kjøreresultater.
+- Brukerautentisering og tilgangsstyring er ikke implementert.
+- Det finnes foreløpig ingen faktisk tilgangslogging.
 
-Neste steg er å implementere og teste tilgangskontrollen i Python før funksjonaliteten eventuelt kobles til Cloud Advisors øvrige tjenester.
+### Planlagt utvikling
 
-## Videre arbeid
+**Fase 1 – Forbedre beregningsmotoren**
 
-- Kontrollere ugyldige inndata, som negative verdier.
-- Samle beregningene i funksjoner.
-- Automatisere testene.
-- Videreutvikle prosjektstrukturen etter hvert som funksjonaliteten øker.
+- Samle rabatt- og kostnadsberegninger i gjenbrukbare funksjoner.
+- Legge til kontroll av ugyldige inndata.
+- Forbedre utskriften av økonomiske resultater.
+- Skrive automatiserte tester for beregninger og budsjettgrenser.
+
+**Fase 2 – Kundehåndtering**
+
+- Utvikle en struktur for flere kunder.
+- Skille kundedata fra beregningslogikken.
+- Vurdere enkel lagring av kundedata.
+
+**Fase 3 – Sikkerhet og tilgangsstyring**
+
+- Implementere brukeridentitet og roller.
+- Kontrollere kundetilhørighet ved hver forespørsel.
+- Avvise handlinger uten nødvendige rettigheter.
+- Innføre logging og tester av tilgangskontrollen.
+
+**Fase 4 – Videre produktutvikling**
+
+- Utforske et enkelt brukergrensesnitt.
+- Vurdere database og API.
+- Videreutvikle løsningen mot et mer komplett kunde- og lisensverktøy.
+
+### Oppsummering
+
+Cloud Advisor skal utvikles gradvis fra en enkel Python-kalkulator til et mer strukturert prosjekt som kombinerer kommersielle beregninger og sikker håndtering av kundedata.
+
+Den eksisterende koden demonstrerer variabler, betingelser, funksjoner, beregninger og utskrift. Videre arbeid skal bygge på dette fundamentet med bedre testing, databehandling og tilgangskontroll.
+
+Prosjektet brukes som praktisk læring innen Python, programvareutvikling og cybersikkerhet.
