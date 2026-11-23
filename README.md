@@ -237,6 +237,212 @@ Loggene skal gjøre det mulig å undersøke tilgangsforsøk og etterprøve sikke
 
 **Status: Tilgangsstyringen er dokumentert gjennom tilgangsmatriser og flytskjemaer, men ikke implementert i Python.**
 
+## Planlagt REMMARK-tjeneste – nettverk og HTTPS
+
+### 1. Behov og formål
+
+REMMARK er en planlagt tjeneste på `https://marketpilot.example` som skal kunne vise firmakort for bedriftskunder.
+
+I dette eksempelet ønsker en bruker å hente firmakortet til Nordkurs AS gjennom nettleseren. Firmakortdataene er oppdiktede og forutsettes allerede lagret hos REMMARK-tjenesten.
+
+Formålet er å forstå hvordan klient, DNS, IP, TLS og HTTP samarbeider når informasjon hentes fra en nettjeneste.
+
+Dette er en forenklet arkitektur med direkte kommunikasjon mellom nettleseren og tjenesten, uten mellomliggende proxy eller lastbalanserer.
+
+### 2. Første skisse – klient og tjeneste
+
+Den første skissen viser hovedkomponentene og informasjonsflyten:
+
+```text
+                   DNS
+             Navneoppslag
+                 ↑   ↓
+                 |   |
+             NETTLESER
+                 |
+                 | Forespørsel:
+                 | Hent Nordkurs AS
+                 ↓
+           REMMARK-TJENESTE
+                 |
+                 | Leser data
+                 ↓
+           FIRMAKORTDATA
+             Nordkurs AS
+                 |
+                 | Returnerer data
+                 ↑
+           REMMARK-TJENESTE
+                 |
+                 | Svar:
+                 | Firmakort
+                 ↓
+             NETTLESER
+```
+
+Skissen viser at nettleseren først trenger en nettverksadresse for tjenesten. Deretter sendes en forespørsel, tjenesten henter lagrede firmakortdata, og nettleseren mottar svaret.
+
+### 3. Forbedret skisse – DNS, IP, TLS og HTTP
+
+Den første skissen er presisert for å vise hvor de ulike nettverksprotokollene benyttes.
+
+```mermaid
+flowchart TD
+    A["Klient / nettleser"]
+    B["DNS-tjener"]
+    C["REMMARK-tjeneste<br/>marketpilot.example<br/>IP: 192.0.2.10 (illustrasjon)"]
+    D[("Lagrede firmakortdata<br/>Nordkurs AS")]
+
+    A -->|"1. DNS-forespørsel: Finn IP for marketpilot.example"| B
+    B -->|"2. DNS-svar: IP-adresse"| A
+    A -->|"3. Opprett TCP- og TLS-forbindelse"| C
+    A -->|"4. HTTPS: HTTP GET /firmakort/nordkurs-as"| C
+    C -->|"5. Hent firmakortdata"| D
+    D -->|"6. Returner lagrede data"| C
+    C -->|"7. HTTPS: HTTP 200 OK + firmakort"| A
+```
+
+**Forklaring av komponentene**
+
+| Komponent | Funksjon |
+|---|---|
+| Klient | Nettleseren som ber om firmakortet. |
+| Domenenavn | `marketpilot.example` er tjenestens planlagte adresse. |
+| DNS | Oversetter domenenavnet til en IP-adresse. |
+| IP | Gjør det mulig å adressere serveren på nettverket. |
+| TLS | Kontrollerer serverens identitet via sertifikat og beskytter forbindelsen med kryptering. |
+| HTTP | Definerer forespørselen og svaret mellom klienten og tjenesten. |
+| REMMARK | Behandler forespørselen og henter riktig firmakort. |
+| Firmakortdata | Oppdiktede kundedata som allerede finnes hos tjenesten. |
+
+IP-adressen `192.0.2.10` brukes kun som illustrasjon. Domenet `marketpilot.example` er også et eksempel og er ikke ment å være et aktivt offentlig nettsted.
+
+### 4. Eksempel på HTTPS-kommunikasjon
+
+Nettleseren starter med et DNS-oppslag for å finne tjenestens IP-adresse.
+
+Når adressen er kjent, opprettes en TCP-forbindelse og deretter en TLS-forbindelse til serveren.
+
+Etter at TLS-forbindelsen er etablert, kan nettleseren sende HTTP-forespørselen gjennom den krypterte forbindelsen.
+
+**Eksempel på HTTP-forespørsel:**
+
+```http
+GET /firmakort/nordkurs-as HTTP/1.1
+Host: marketpilot.example
+```
+
+REMMARK-tjenesten undersøker om firmakortet finnes i sine lagrede data.
+
+**Eksempel på vellykket HTTP-svar:**
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+```
+
+Svarinnholdet inneholder firmakortet til Nordkurs AS.
+
+HTTPS betyr at HTTP-kommunikasjonen beskyttes med TLS. DNS-oppslaget er en separat del av prosessen og er ikke automatisk beskyttet av HTTPS-forbindelsen.
+
+### 5. Feilsøking – tre separate observasjoner
+
+Feilsøking bør starte på det nivået der problemet først oppstår.
+
+| Observasjon | Mulig årsak | Første undersøkelse |
+|---|---|---|
+| Domenenavnet finnes ikke | Feil domenenavn eller manglende DNS-oppføring | Kontroller at domenenavnet er riktig skrevet og at forventet DNS-oppføring finnes. |
+| Nettleseren viser sertifikatvarsel | Sertifikatet er utløpt, ikke betrodd eller samsvarer ikke med domenet | Kontroller sertifikatets gyldighet, tillitskjede og domenenavn. |
+| HTTP-svar: Firmakort mangler | Feil firmakort-ID, feil endepunkt eller manglende data | Kontroller forespurt URL og kundeidentifikator, og undersøk om firmakortet finnes hos tjenesten. |
+
+**Observasjon A – Domenenavnet finnes ikke**
+
+Dersom DNS ikke klarer å finne domenenavnet, kan ikke nettleseren bruke det til å finne serveren.
+
+Første undersøkelse er å kontrollere stavemåten og forventet DNS-konfigurasjon.
+
+I dette prosjektet er `.example` et reservert eksempeldomene. At `marketpilot.example` ikke finnes i offentlig DNS, er derfor forventet og betyr ikke at en virkelig tjeneste har fått en feil.
+
+**Observasjon B – Sertifikatvarsel**
+
+Et sertifikatvarsel kan bety at nettleseren ikke klarer å bekrefte serverens identitet.
+
+Første undersøkelse er å kontrollere at TLS-sertifikatet:
+
+- Gjelder riktig domenenavn.
+- Ikke er utløpt.
+- Har en gyldig og betrodd sertifikatkjede.
+
+Sertifikatvarsler skal ikke omgås som en permanent løsning. Problemet må undersøkes før tjenesten benyttes med sensitive opplysninger.
+
+**Observasjon C – HTTP-svar om manglende firmakort**
+
+Et HTTP-svar som `404 Not Found` kan bety at ressursen som etterspørres, ikke ble funnet.
+
+Første undersøkelse er å kontrollere at riktig endepunkt og firmakort-ID er benyttet.
+
+Deretter undersøkes om Nordkurs AS finnes i tjenestens lagrede data, og om applikasjonen slår opp riktig kunde.
+
+Dette er i utgangspunktet en feil på applikasjonsnivå, ikke nødvendigvis en feil med DNS eller TLS.
+
+### 6. Hvorfor DNS og HTTPS ikke er tilstrekkelig
+
+**Fungerende DNS betyr ikke at riktig firmakort vises.**
+
+DNS hjelper klienten med å finne IP-adressen til tjenesten. DNS kontrollerer ikke hvilket firmakort som blir hentet, eller om innholdet er korrekt.
+
+Et vellykket DNS-oppslag kan derfor etterfølges av feil på serveren eller i applikasjonen.
+
+**Fungerende HTTPS betyr heller ikke at firmainformasjonen er riktig.**
+
+HTTPS kan gi kryptert kommunikasjon og bekrefte identiteten til serveren gjennom sertifikatkontroll.
+
+Det betyr imidlertid ikke at applikasjonen nødvendigvis returnerer riktig informasjon.
+
+Tjenesten kan eksempelvis:
+
+- Hente firmakortet til feil kunde.
+- Returnere utdatert informasjon.
+- Ha feil kobling mellom firmakort-ID og kundedata.
+- Vise data til en bruker som ikke har nødvendige rettigheter.
+
+For å sikre riktig og autorisert firmainformasjon må REMMARK også kontrollere kundeidentifikator, datakvalitet og tilgangsrettigheter på applikasjonsnivå.
+
+### 7. Rettelser og læringspunkter
+
+Den første skissen viste hovedflyten mellom nettleser, tjeneste og data.
+
+Den forbedrede skissen presiserer at:
+
+1. DNS-oppslaget kommer før forbindelsen til tjenesten.
+2. IP-adressen brukes til å nå riktig server.
+3. TCP- og TLS-forbindelsen etableres før HTTP-forespørselen sendes.
+4. HTTP-forespørselen og HTTP-svaret transporteres gjennom TLS.
+5. Firmakortdataene hentes internt av REMMARK-tjenesten.
+6. Sikker kommunikasjon ikke alene garanterer korrekt eller autorisert datatilgang.
+
+Dette viser forskjellen mellom nettverkskommunikasjon, transportbeskyttelse og applikasjonens ansvar for data.
+
+### 8. Begrensninger og videre arbeid
+
+**Status: Planlagt og dokumentert – ikke implementert.**
+
+Nettverksdiagrammene beskriver en tenkt løsning. Det er ikke gjennomført faktiske DNS-oppslag, HTTPS-tester eller HTTP-kall mot REMMARK.
+
+Videre utvikling kan omfatte:
+
+- Etablering av en faktisk webtjeneste.
+- Konfigurering av domenenavn, DNS og TLS-sertifikat.
+- Utvikling av et API for firmakort.
+- Kontroll av kundeidentifikator og datatilgang.
+- Implementering av rollebasert tilgangsstyring.
+- Logging av forespørsler og feilsituasjoner.
+- Tester for korrekte svar, manglende data og uautorisert tilgang.
+
+Dette bygger videre på Cloud Advisor-prosjektets eksisterende arbeid med Python, kundedata, beregninger og planlagt tilgangsstyring.
+
+**Læringsmål:** Forstå hvordan DNS, IP, TLS og HTTP samarbeider, hvordan nettverksfeil kan skilles fra applikasjonsfeil, og hvorfor sikker kommunikasjon må kombineres med korrekt databehandling og tilgangskontroll.
+
 ## 5. Begrensninger og videre utvikling
 
 Cloud Advisor er foreløpig en læringsprototype, ikke en ferdig tjeneste.
